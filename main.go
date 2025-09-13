@@ -1,20 +1,24 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strings"
-	"bufio"
 )
 
 type cliCommand struct {
-	name string
+	name        string
 	description string
-	callback func() error
+	callback    func(*config) error
+}
+
+type config struct {
+	Next     *string
+	Previous *string
 }
 
 var registry = make(map[string]cliCommand)
-
 
 func cleanInput(input string) []string {
 	trimmed := strings.TrimSpace(input)
@@ -23,38 +27,37 @@ func cleanInput(input string) []string {
 	return list_lower
 }
 
-func commandExit() error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-}
-
-func commandHelp() error {
-	fmt.Println("Welcome to the Pokedex!")
-	fmt.Println("Usage:")
-	for _, value := range registry {
-		fmt.Println(value.name + ": " + value.description)
-	}
-	return nil
-}
-
-func init(){
-registry["exit"] = cliCommand{
-		name: "exit",
+func init() {
+	registry["exit"] = cliCommand{
+		name:        "exit",
 		description: "Exit the Pokedex",
-		callback: commandExit,
+		callback:    commandExit,
 	}
 	registry["help"] = cliCommand{
-		name: "help",
+		name:        "help",
 		description: "Displays a help message",
-		callback: commandHelp,
+		callback:    commandHelp,
+	}
+	registry["map"] = cliCommand{
+		name:        "map",
+		description: "Gives the next 20 locations",
+		callback:    commandMap,
+	}
+	registry["mapb"] = cliCommand{
+		name:        "mapb",
+		description: "Gives the previous 20 locations",
+		callback:    commandMapBack,
 	}
 }
 
 func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
-	
+	conf := config{
+		Next:     nil,
+		Previous: nil,
+	}
+
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
@@ -65,7 +68,7 @@ func main() {
 		if !ok {
 			fmt.Println("Unknown command")
 		} else {
-			err := val.callback()
+			err := val.callback(&conf)
 			if err != nil {
 				fmt.Println(err)
 			}
