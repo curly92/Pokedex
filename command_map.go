@@ -1,28 +1,24 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func commandMap(conf *config) error {
-	var locationResponse LocationResponse
-	if conf.Next == nil {
-		res, err := request("https://pokeapi.co/api/v2/location-area/")
-		if err != nil {
-			return err
-		}
-		locationResponse = res
-	} else {
-		res, err := request(*conf.Next)
-		if err != nil {
-			return err
-		}
-		locationResponse = res
+	url := "https://pokeapi.co/api/v2/location-area/"
+	if conf.Next != nil {
+		url = *conf.Next
 	}
-	conf.Next = locationResponse.Next
-	conf.Previous = locationResponse.Previous
-
-	for _, val := range locationResponse.Results {
-		fmt.Println(val.Name)
+	result, err := conf.Client.GetLocations(url)
+	fmt.Println(url)
+	if err != nil {
+		return err
 	}
+	conf.Next = result.Next
+	conf.Previous = result.Previous
 
+	for _, r := range result.Results {
+		fmt.Println(r.Name)
+	}
 	return nil
 }

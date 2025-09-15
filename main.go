@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/curly92/Pokedex/internal/pokeapi"
+	"github.com/curly92/Pokedex/internal/pokecache"
 )
 
 type cliCommand struct {
@@ -16,6 +20,7 @@ type cliCommand struct {
 type config struct {
 	Next     *string
 	Previous *string
+	Client   *pokeapi.Client
 }
 
 var registry = make(map[string]cliCommand)
@@ -56,6 +61,9 @@ func main() {
 	conf := config{
 		Next:     nil,
 		Previous: nil,
+		Client: pokeapi.NewClient(
+			pokecache.NewCache(10 * time.Second),
+		),
 	}
 
 	for {
